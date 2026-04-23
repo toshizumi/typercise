@@ -59,6 +59,12 @@ pub fn run() {
             buffer::spawn_flush_task(Arc::clone(&buffer), Arc::clone(&store));
             keystroke::start(Arc::clone(&buffer));
 
+            // 初回起動時にアクセシビリティ権限プロンプトを発火させ、
+            // システム設定の一覧に Typercise を登録させる。
+            // 既に許可済みなら no-op（ダイアログは出ない）。
+            let trusted = perms::request_accessibility();
+            tracing::info!(trusted, "accessibility status at startup");
+
             app.manage(AppState {
                 store: Arc::clone(&store),
             });
