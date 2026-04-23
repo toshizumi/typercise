@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>打鍵数を数えるためキーボードイベントの読み取り権限が必要です。キーの内容は保存しません。</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>メニューバー常駐動作のためAppleEventsを利用します。</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>© 2026 toshizumi</string>
+</dict>
+</plist>
