@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# KeyCount release script: build → sign → notarize → staple
+# Typercise release script: build → sign → notarize → staple
 #
 # Required env vars:
 #   APPLE_SIGNING_IDENTITY  e.g. "Developer ID Application: Taro Yamada (TEAMID)"
@@ -16,7 +16,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-PRODUCT_NAME="KeyCount"
+PRODUCT_NAME="Typercise"
 BUNDLE_ID="jp.garage-standard.keycount"
 APP_PATH="src-tauri/target/release/bundle/macos/${PRODUCT_NAME}.app"
 DMG_PATH="src-tauri/target/release/bundle/dmg"

@@ -180,7 +180,7 @@ pub fn App() -> impl IntoView {
                 }}
             </div>
 
-            <div class="footer">"KeyCount · カロリーは参考値です"</div>
+            <div class="footer">"Typercise · カロリーは参考値です"</div>
         </div>
     }
 }

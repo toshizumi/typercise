@@ -1,4 +1,4 @@
-# KeyCount
+# Typercise
 
 macOS メニューバー常駐の打鍵カウンタ（Rust + Tauri v2 + Leptos）。
 

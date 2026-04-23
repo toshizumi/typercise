@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "KeyCount",
+  "productName": "Typercise",
   "version": "0.1.0",
   "identifier": "jp.garage-standard.keycount",
   "build": {
@@ -15,7 +15,7 @@
     "windows": [
       {
         "label": "popover",
-        "title": "KeyCount",
+        "title": "Typercise",
         "url": "index.html",
         "width": 340,
         "height": 520,
