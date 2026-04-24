@@ -11,6 +11,13 @@ mod mac {
         fn AXIsProcessTrustedWithOptions(options: CFDictionaryRef) -> u8;
     }
 
+    #[link(name = "IOKit", kind = "framework")]
+    extern "C" {
+        // kIOHIDRequestTypeListenEvent = 1, kIOHIDRequestTypePostEvent = 0
+        fn IOHIDRequestAccess(requestType: u32) -> u8;
+        fn IOHIDCheckAccess(requestType: u32) -> u32; // 0=granted, 1=denied, 2=unknown
+    }
+
     pub fn is_trusted(prompt: bool) -> bool {
         unsafe {
             let key: CFString = CFString::wrap_under_get_rule(kAXTrustedCheckOptionPrompt);
@@ -24,6 +31,14 @@ mod mac {
             AXIsProcessTrustedWithOptions(dict.as_concrete_TypeRef()) != 0
         }
     }
+
+    pub fn input_monitoring_granted() -> bool {
+        unsafe { IOHIDCheckAccess(1) == 0 }
+    }
+
+    pub fn request_input_monitoring() -> bool {
+        unsafe { IOHIDRequestAccess(1) != 0 }
+    }
 }
 
 #[cfg(target_os = "macos")]
@@ -36,6 +51,16 @@ pub fn request_accessibility() -> bool {
     mac::is_trusted(true)
 }
 
+#[cfg(target_os = "macos")]
+pub fn check_input_monitoring() -> bool {
+    mac::input_monitoring_granted()
+}
+
+#[cfg(target_os = "macos")]
+pub fn request_input_monitoring() -> bool {
+    mac::request_input_monitoring()
+}
+
 #[cfg(not(target_os = "macos"))]
 pub fn check_accessibility() -> bool {
     true
@@ -43,5 +68,15 @@ pub fn check_accessibility() -> bool {
 
 #[cfg(not(target_os = "macos"))]
 pub fn request_accessibility() -> bool {
+    true
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn check_input_monitoring() -> bool {
+    true
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn request_input_monitoring() -> bool {
     true
 }

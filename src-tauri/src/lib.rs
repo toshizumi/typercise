@@ -59,11 +59,29 @@ pub fn run() {
             buffer::spawn_flush_task(Arc::clone(&buffer), Arc::clone(&store));
             keystroke::start(Arc::clone(&buffer));
 
-            // 初回起動時にアクセシビリティ権限プロンプトを発火させ、
+            // 初回起動時にアクセシビリティ＋入力監視の権限プロンプトを発火させ、
             // システム設定の一覧に Typercise を登録させる。
             // 既に許可済みなら no-op（ダイアログは出ない）。
-            let trusted = perms::request_accessibility();
-            tracing::info!(trusted, "accessibility status at startup");
+            let ax = perms::request_accessibility();
+            let im = perms::request_input_monitoring();
+            tracing::info!(ax, im, "permission status at startup");
+            {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                let p = std::path::PathBuf::from(home)
+                    .join("Library/Application Support/jp.garage-standard.keycount/perms.status");
+                if let Some(parent) = p.parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
+                let _ = std::fs::write(
+                    &p,
+                    format!(
+                        "{} ax={} im={}\n",
+                        chrono::Utc::now().to_rfc3339(),
+                        ax,
+                        im
+                    ),
+                );
+            }
 
             app.manage(AppState {
                 store: Arc::clone(&store),

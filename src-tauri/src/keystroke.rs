@@ -48,54 +48,85 @@ pub fn classify(keycode: u16, ctrl_pressed: bool) -> KeyClass {
 }
 
 #[cfg(target_os = "macos")]
+fn write_tap_status(msg: &str) {
+    let Some(home) = std::env::var_os("HOME") else {
+        return;
+    };
+    let path = std::path::PathBuf::from(home)
+        .join("Library/Application Support/jp.garage-standard.keycount/tap.status");
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let line = format!("{} {}\n", chrono::Utc::now().to_rfc3339(), msg);
+    let _ = std::fs::write(&path, line);
+}
+
+#[cfg(target_os = "macos")]
 pub fn start(buf: Arc<Buffer>) {
     std::thread::spawn(move || {
+        use std::time::Duration;
+
         use core_foundation::runloop::{kCFRunLoopCommonModes, CFRunLoop};
         use core_graphics::event::{
             CGEventFlags, CGEventTap, CGEventTapLocation, CGEventTapOptions, CGEventTapPlacement,
             CGEventType, EventField,
         };
 
-        let current = CFRunLoop::get_current();
-        let buf_cb = Arc::clone(&buf);
+        let mut attempt: u64 = 0;
+        loop {
+            attempt += 1;
+            let buf_cb = Arc::clone(&buf);
+            let tap = CGEventTap::new(
+                CGEventTapLocation::HID,
+                CGEventTapPlacement::HeadInsertEventTap,
+                CGEventTapOptions::ListenOnly,
+                vec![CGEventType::KeyDown],
+                move |_proxy, event_type, event| {
+                    if matches!(event_type, CGEventType::KeyDown) {
+                        let keycode = event
+                            .get_integer_value_field(EventField::KEYBOARD_EVENT_KEYCODE)
+                            as u16;
+                        let flags = event.get_flags();
+                        let ctrl = flags.contains(CGEventFlags::CGEventFlagControl);
+                        match classify(keycode, ctrl) {
+                            KeyClass::Ignore => {}
+                            KeyClass::Count => buf_cb.inc_key(),
+                            KeyClass::Correction => buf_cb.inc_correction(),
+                        }
+                    }
+                    None
+                },
+            );
 
-        let tap = CGEventTap::new(
-            CGEventTapLocation::HID,
-            CGEventTapPlacement::HeadInsertEventTap,
-            CGEventTapOptions::ListenOnly,
-            vec![CGEventType::KeyDown],
-            move |_proxy, event_type, event| {
-                if matches!(event_type, CGEventType::KeyDown) {
-                    let keycode =
-                        event.get_integer_value_field(EventField::KEYBOARD_EVENT_KEYCODE) as u16;
-                    let flags = event.get_flags();
-                    let ctrl = flags.contains(CGEventFlags::CGEventFlagControl);
-                    match classify(keycode, ctrl) {
-                        KeyClass::Ignore => {}
-                        KeyClass::Count => buf_cb.inc_key(),
-                        KeyClass::Correction => buf_cb.inc_correction(),
+            match tap {
+                Ok(tap) => unsafe {
+                    let current = CFRunLoop::get_current();
+                    let src = tap
+                        .mach_port
+                        .create_runloop_source(0)
+                        .expect("create_runloop_source");
+                    current.add_source(&src, kCFRunLoopCommonModes);
+                    tap.enable();
+                    tracing::info!(
+                        attempt,
+                        "CGEventTap installed; listening for KeyDown events"
+                    );
+                    write_tap_status(&format!("installed attempt={attempt}"));
+                    CFRunLoop::run_current();
+                    tracing::warn!("CFRunLoop exited unexpectedly; will re-attempt");
+                    write_tap_status("run_loop_exited");
+                },
+                Err(_) => {
+                    if attempt == 1 || attempt % 20 == 0 {
+                        tracing::warn!(
+                            attempt,
+                            "CGEventTap unavailable (Accessibility not granted?); retrying"
+                        );
+                        write_tap_status(&format!("failed attempt={attempt}"));
                     }
                 }
-                None
-            },
-        );
-
-        match tap {
-            Ok(tap) => unsafe {
-                let src = tap
-                    .mach_port
-                    .create_runloop_source(0)
-                    .expect("create_runloop_source");
-                current.add_source(&src, kCFRunLoopCommonModes);
-                tap.enable();
-                tracing::info!("CGEventTap installed; listening for KeyDown events");
-                CFRunLoop::run_current();
-            },
-            Err(_) => {
-                tracing::error!(
-                    "Failed to create CGEventTap. Accessibility permission is required."
-                );
             }
+            std::thread::sleep(Duration::from_secs(3));
         }
     });
 }
