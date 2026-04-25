@@ -77,7 +77,7 @@ body {
   margin: 0 auto;
   text-align: center;
 }
-.pane-inner.narrow { max-width: 760px; }
+.pane-inner.narrow { max-width: 920px; }
 
 .dark { background: var(--dark-bg); color: var(--dark-text); }
 .dark .muted { color: var(--dark-muted); }
@@ -85,10 +85,12 @@ body {
 .light .muted { color: var(--light-muted); }
 
 .display {
-  font-size: clamp(38px, 7vw, 88px);
+  font-size: clamp(36px, 6.4vw, 76px);
   font-weight: 700;
   letter-spacing: -0.028em;
-  line-height: 1.08;
+  line-height: 1.12;
+  word-break: keep-all;
+  text-wrap: balance;
 }
 
 .lead {
