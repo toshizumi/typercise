@@ -84,6 +84,54 @@ fn minute_of(ts: i64) -> i64 {
     ts.div_euclid(60)
 }
 
+#[derive(Serialize, Clone, Debug)]
+pub struct DaySummary {
+    pub date: String, // YYYY-MM-DD
+    pub keys: u64,
+    pub corrections: u64,
+    pub kcal: f64,
+    pub peak_kpm: u32,
+    pub avg_kpm: u32,
+    pub active_minutes: u32,
+}
+
+pub fn day_summary(store: &Store, date: NaiveDate) -> anyhow::Result<DaySummary> {
+    let start = minute_of(local_midnight(date));
+    let end = minute_of(local_midnight(date + CDuration::days(1)));
+    let rows = store.rows_in_range(start, end)?;
+    let mut keys = 0u64;
+    let mut corrections = 0u64;
+    let mut active_minutes = 0u32;
+    let mut peak_kpm = 0u32;
+    let mut total_keystrokes = 0u64;
+    for (_m, c, r) in rows {
+        keys += c as u64;
+        corrections += r as u64;
+        let minute_keystrokes = (c as u64 + r as u64) as u32;
+        if minute_keystrokes > 0 {
+            active_minutes += 1;
+            total_keystrokes += minute_keystrokes as u64;
+            if minute_keystrokes > peak_kpm {
+                peak_kpm = minute_keystrokes;
+            }
+        }
+    }
+    let avg_kpm = if active_minutes > 0 {
+        (total_keystrokes / active_minutes as u64) as u32
+    } else {
+        0
+    };
+    Ok(DaySummary {
+        date: date.format("%Y-%m-%d").to_string(),
+        keys,
+        corrections,
+        kcal: keys as f64 * KCAL_PER_KEY,
+        peak_kpm,
+        avg_kpm,
+        active_minutes,
+    })
+}
+
 pub fn today(store: &Store) -> anyhow::Result<TodayStats> {
     let today = Local::now().date_naive();
     let start = minute_of(local_midnight(today));
@@ -327,5 +375,28 @@ mod tests {
         assert_eq!(rework_rate(10, 0), 0.0);
         assert!((rework_rate(10, 2) - 2.0 / 12.0).abs() < 1e-9);
         assert_eq!(rework_rate(0, 3), 1.0);
+    }
+
+    #[test]
+    fn day_summary_basic() {
+        let target = Local::now().date_naive() - CDuration::days(1);
+        let m1 = Local
+            .from_local_datetime(&target.and_hms_opt(10, 30, 0).unwrap())
+            .unwrap()
+            .timestamp()
+            / 60;
+        let m2 = Local
+            .from_local_datetime(&target.and_hms_opt(11, 15, 0).unwrap())
+            .unwrap()
+            .timestamp()
+            / 60;
+        let s = store_with(&[(m1, 100, 5), (m2, 200, 10)]);
+        let d = day_summary(&s, target).unwrap();
+        assert_eq!(d.date, target.format("%Y-%m-%d").to_string());
+        assert_eq!(d.keys, 300);
+        assert_eq!(d.corrections, 15);
+        assert_eq!(d.active_minutes, 2);
+        assert_eq!(d.peak_kpm, 210); // 200 + 10
+        assert_eq!(d.avg_kpm, (105 + 210) / 2);
     }
 }

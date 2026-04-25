@@ -2,8 +2,10 @@ mod buffer;
 mod commands;
 mod keystroke;
 mod perms;
+mod settings;
 mod stats;
 mod store;
+mod telemetry;
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -13,6 +15,7 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}
 use tauri::{Manager, WindowEvent};
 
 use crate::buffer::Buffer;
+use crate::settings::SettingsStore;
 use crate::commands::AppState;
 use crate::store::Store;
 
@@ -56,8 +59,16 @@ pub fn run() {
             let store = Arc::new(Store::open(&db_path)?);
             let buffer = Arc::new(Buffer::new());
 
+            let settings_path = app
+                .path()
+                .app_data_dir()
+                .map_err(|e| anyhow::anyhow!("app_data_dir: {e}"))?
+                .join("settings.json");
+            let settings = Arc::new(SettingsStore::open(&settings_path)?);
+
             buffer::spawn_flush_task(Arc::clone(&buffer), Arc::clone(&store));
             keystroke::start(Arc::clone(&buffer));
+            telemetry::spawn_periodic(Arc::clone(&settings), Arc::clone(&store));
 
             // 初回起動時にアクセシビリティ＋入力監視の権限プロンプトを発火させ、
             // システム設定の一覧に Typercise を登録させる。
@@ -85,6 +96,7 @@ pub fn run() {
 
             app.manage(AppState {
                 store: Arc::clone(&store),
+                settings: Arc::clone(&settings),
             });
 
             let show_item = MenuItemBuilder::with_id("show", "統計を開く").build(app)?;
@@ -152,6 +164,11 @@ pub fn run() {
             commands::get_live,
             commands::check_accessibility,
             commands::request_accessibility,
+            commands::get_settings,
+            commands::set_telemetry_enabled,
+            commands::set_nickname,
+            commands::mark_consent_shown,
+            commands::get_world_stats,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

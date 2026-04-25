@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Typercise",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "jp.garage-standard.keycount",
   "build": {
-    "beforeDevCommand": "trunk serve",
+    "beforeDevCommand": "cd .. && trunk serve",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "trunk build",
+    "beforeBuildCommand": "cd .. && trunk build",
     "frontendDist": "../dist"
   },
   "app": {

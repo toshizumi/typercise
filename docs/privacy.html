@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>プライバシー — Typercise</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .doc {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: left;
+      line-height: 1.7;
+      font-size: 16px;
+    }
+    .doc h2 {
+      font-size: 20px;
+      margin-top: 36px;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+    .doc h3 {
+      font-size: 16px;
+      margin-top: 20px;
+      margin-bottom: 6px;
+    }
+    .doc p { margin-bottom: 12px; }
+    .doc ul { margin: 8px 0 14px 22px; }
+    .doc li { margin-bottom: 6px; }
+    .doc code {
+      background: rgba(255,255,255,0.08);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .pos { color: #5ac8fa; }
+    .neg { color: #ff8533; }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a class="brand" href="index.html" style="color:inherit;text-decoration:none;">Typercise</a>
+    <a class="nav-link" href="https://github.com/toshizumi/typercise">GitHub</a>
+  </div>
+</nav>
+
+<section class="pane dark" style="padding-top:80px;">
+  <div class="pane-inner">
+    <h1 class="display">プライバシー</h1>
+    <p class="lead">Typercise が何を送り、何を送らないか、どう止められるか。</p>
+
+    <div class="doc">
+
+      <h2 class="pos">送信する情報（オンの場合）</h2>
+      <p>「世界の Typercizer」ランキングのため、希望者のみ <strong>1日1回</strong>、前日分の集計値を送信します。</p>
+      <ul>
+        <li><code>client_id</code> — アプリが初回起動時にローカルで生成する UUID v4。Apple ID 等とは紐付きません</li>
+        <li><code>date</code> — 集計対象日（YYYY-MM-DD、お使いの端末のローカル日付）</li>
+        <li><code>keys</code> / <code>corrections</code> — その日の総打鍵数と訂正キー数</li>
+        <li><code>kcal</code> — 換算カロリー（参考値）</li>
+        <li><code>peak_kpm</code> / <code>avg_kpm</code> / <code>active_minutes</code> — 速度・活動時間</li>
+        <li><code>nickname</code> — ランキング表示用に任意で設定したニックネーム（未設定時は送信しません）</li>
+        <li><code>app_version</code> / <code>os_version</code> — 互換性確認用</li>
+      </ul>
+
+      <h2 class="neg">送信しない情報</h2>
+      <ul>
+        <li>キーの内容（押されたキーが何だったか）</li>
+        <li>入力先のアプリ、ウィンドウ、ファイル、URL</li>
+        <li>クリップボードの内容、選択中のテキスト</li>
+        <li>ホスト名、ユーザー名、メールアドレス、Apple ID</li>
+        <li>位置情報、IP アドレスは Worker に届きますが <strong>サーバ側のログにも残しません</strong></li>
+      </ul>
+
+      <h2>送信を止める方法</h2>
+      <h3>アプリ側で</h3>
+      <p>メニューバーアイコン → ポップオーバーを開く → ヘッダ右上の歯車 ⚙ → 「世界の Typercizer に参加」のチェックを外す。即座に送信は停止します。</p>
+      <h3>初回起動時</h3>
+      <p>初回起動で出る同意モーダルの「送信せずに使う」を選ぶと、最初から送信されません。</p>
+      <h3>ファイルを直接編集</h3>
+      <p>UI が開けない場合: <code>~/Library/Application Support/jp.garage-standard.keycount/settings.json</code> を編集して <code>"telemetry_enabled": false</code> にしてください。</p>
+
+      <h2>過去のデータの削除</h2>
+      <p>サーバには <code>client_id</code> を主キーにしたあなたの日次集計値のみがあります。完全削除を希望する場合は GitHub Issues か <a href="mailto:apple@garage-standard.jp">apple@garage-standard.jp</a> に <code>client_id</code> をご連絡ください。手元の <code>settings.json</code> を削除すれば、次回起動から別の UUID で開始するため、過去のデータと事実上切り離せます。</p>
+
+      <h2>第三者提供・広告</h2>
+      <p>ありません。データは <a href="world.html">世界の Typercizer</a> ページの集計表示にのみ利用します。</p>
+
+      <h2>検証可能性</h2>
+      <p>Typercise はオープンソースです。クライアントから何が送信されるか、サーバで何が保存されるかは、すべて GitHub で読めます。</p>
+      <ul>
+        <li>クライアント送信処理: <a href="https://github.com/toshizumi/typercise/blob/main/src-tauri/src/telemetry.rs">src-tauri/src/telemetry.rs</a></li>
+        <li>サーバ実装: <a href="https://github.com/toshizumi/typercise/blob/main/server/src/index.ts">server/src/index.ts</a></li>
+        <li>サーバ DB スキーマ: <a href="https://github.com/toshizumi/typercise/blob/main/server/migrations/0001_init.sql">server/migrations/0001_init.sql</a></li>
+      </ul>
+
+      <h2>更新履歴</h2>
+      <p>2026-04-25 初版（Typercise 0.2.0）。</p>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-inner">
+    <span>© 2026 toshizumi</span>
+    <span class="sep">·</span>
+    <a href="index.html">トップ</a>
+    <span class="sep">·</span>
+    <a href="world.html">世界の Typercizer</a>
+    <span class="sep">·</span>
+    <a href="https://github.com/toshizumi/typercise">GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>

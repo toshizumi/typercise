@@ -1,0 +1,19 @@
+{
+  "name": "typercise-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Typercise telemetry & world stats Worker",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy",
+    "migrate:local": "wrangler d1 execute typercise --local --file=migrations/0001_init.sql",
+    "migrate:prod": "wrangler d1 execute typercise --remote --file=migrations/0001_init.sql",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240821.1",
+    "typescript": "^5.6.3",
+    "wrangler": "^4.0.0"
+  }
+}

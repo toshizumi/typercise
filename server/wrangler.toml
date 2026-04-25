@@ -1,0 +1,19 @@
+name = "typercise-api"
+main = "src/index.ts"
+compatibility_date = "2026-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 本番デプロイ前に `wrangler d1 create typercise` で取得した ID を database_id に貼る
+[[d1_databases]]
+binding = "DB"
+database_name = "typercise"
+database_id = "6d172fee-5488-4e44-b739-6fc98c20f418"
+
+[observability]
+enabled = true
+
+# /world のキャッシュ TTL（秒）。Cache API でも別途キャッシュするが、保険として KV 不使用
+[vars]
+CACHE_TTL_SECONDS = "60"
+MAX_NICKNAME_LEN = "32"
+MAX_KEYS_PER_DAY = "5000000"
