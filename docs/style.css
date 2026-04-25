@@ -248,6 +248,19 @@ body {
 }
 .kcal-table .num strong { font-size: 22px; font-weight: 700; }
 
+/* ---------------- text link ---------------- */
+.text-link {
+  display: inline-block;
+  margin-top: 28px;
+  color: var(--cta);
+  font-size: 17px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: -0.003em;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.text-link:hover { opacity: 0.85; transform: translateX(2px); }
+
 /* ---------------- CTA ---------------- */
 .cta {
   display: inline-block;
