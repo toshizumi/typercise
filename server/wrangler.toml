@@ -16,4 +16,12 @@ enabled = true
 [vars]
 CACHE_TTL_SECONDS = "60"
 MAX_NICKNAME_LEN = "32"
-MAX_KEYS_PER_DAY = "5000000"
+MAX_KEYS_PER_DAY = "1000000"
+MAX_PEAK_KPM = "600"
+
+# IP あたり 30 req / 60 秒
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 30, period = 60 }
